@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7ece5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <title>Keramik Preisrechner</title>
+  <style>
+    :root {
+      --bg: url("hintergrund.jpg");
+      --text: #3a2b28;
+      --muted: #7a625b;
+      --line: rgba(89, 62, 50, .14);
+      --card: rgba(255, 250, 244, .91);
+      --card-solid: rgba(255, 249, 242, .97);
+      --field: rgba(255, 254, 250, .96);
+      --accent: #d99a8f;
+      --accent-strong: #ad675d;
+      --accent-soft: #f4ddd9;
+      --cream: #fff7ef;
+      --shadow: 0 16px 42px rgba(74, 48, 35, .16);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html {
+      min-height: 100%;
+      background: #f7ece5;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      color: var(--text);
+      font-family: ui-rounded, "SF Pro Rounded", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-image: linear-gradient(rgba(250, 239, 229, .34), rgba(250, 239, 229, .20)), var(--bg);
+      background-size: cover;
+      background-position: center top;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.22), transparent 42%), linear-gradient(to bottom, rgba(255,255,255,.10), rgba(255,255,255,.03));
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 520px);
+      margin: 0 auto;
+      padding: calc(24px + env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom));
+    }
+
+    header {
+      text-align: center;
+      padding: 8px 8px 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(46px, 13vw, 74px);
+      line-height: .88;
+      letter-spacing: -.045em;
+      color: #3a2824;
+      text-wrap: balance;
+      text-shadow: 0 2px 18px rgba(255,255,255,.65);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin: 14px 0;
+      -webkit-backdrop-filter: blur(12px) saturate(1.05);
+      backdrop-filter: blur(12px) saturate(1.05);
+    }
+
+    .card.compact { padding: 16px; }
+
+    .head {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 19px;
+      display: grid;
+      place-items: center;
+      background: #f5ddd8;
+      border: 1px solid rgba(173,103,93,.16);
+      color: var(--accent-strong);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+      flex: none;
+    }
+
+    .icon svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    h2 {
+      font-size: clamp(23px, 6.8vw, 32px);
+      line-height: 1.05;
+      margin: 0 0 4px;
+      letter-spacing: -.035em;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    label {
+      display: block;
+      font-weight: 800;
+      font-size: 15px;
+      margin: 14px 0 8px;
+      letter-spacing: -.01em;
+    }
+
+    .input-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 104px;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    input, select, button {
+      font: inherit;
+      border: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input, select {
+      min-width: 0;
+      width: 100%;
+      background: var(--field);
+      border: 2px solid rgba(141, 102, 88, .18);
+      color: var(--text);
+      border-radius: 18px;
+      min-height: 64px;
+      padding: 12px 16px;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 8px 24px rgba(74, 48, 35, .06);
+      font-size: 16px;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(173,103,93,.45);
+      box-shadow: 0 0 0 4px rgba(217,154,143,.18), inset 0 1px 0 rgba(255,255,255,.88);
+    }
+
+    .big-input {
+      font-size: clamp(28px, 9vw, 42px);
+      font-weight: 850;
+      letter-spacing: -.04em;
+    }
+
+    .unit-wrap { position: relative; }
+    .unit-wrap::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid var(--accent-strong);
+      transform: translateY(-30%);
+      pointer-events: none;
+    }
+    select {
+      font-weight: 850;
+      padding-right: 38px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .stars-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 118px;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .hint-box {
+      min-height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 10px;
+      background: rgba(245, 221, 216, .58);
+      border: 1px solid rgba(141,102,88,.12);
+      color: var(--accent-strong);
+      font-weight: 850;
+      line-height: 1.15;
+    }
+
+    .quick-stars {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+      margin: 12px 0 16px;
+    }
+
+    .chip {
+      min-width: 0;
+      height: 40px;
+      border-radius: 999px;
+      color: #6b514a;
+      background: rgba(255,250,244,.82);
+      border: 1px solid rgba(80,54,42,.10);
+      box-shadow: 0 7px 18px rgba(74,48,35,.07);
+      font-weight: 850;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border-color: rgba(173,103,93,.24);
+    }
+
+    .primary {
+      width: 100%;
+      min-height: 66px;
+      border-radius: 22px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e2a49a, #cc7f74);
+      color: white;
+      font-size: clamp(22px, 6.8vw, 34px);
+      font-weight: 900;
+      letter-spacing: -.025em;
+      box-shadow: 0 12px 28px rgba(173,103,93,.26), inset 0 1px 0 rgba(255,255,255,.34);
+    }
+    .primary:active { transform: translateY(1px); }
+
+    .price {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--accent-strong);
+      font-size: clamp(52px, 16vw, 82px);
+      line-height: .95;
+      letter-spacing: -.055em;
+      margin: 2px 0 8px;
+      white-space: nowrap;
+    }
+
+    .formula {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #5f4943;
+    }
+
+    .formula strong { color: var(--text); }
+
+    .section-title {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-title .icon { width: 46px; height: 46px; border-radius: 16px; }
+    .section-title h2 { font-size: clamp(22px, 6.1vw, 30px); }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+      line-height: 1.24;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row .name { min-width: 0; }
+    .row .name strong { display: block; font-weight: 850; }
+    .row .name span { display: block; color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .row .value {
+      font-weight: 900;
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .row.total {
+      margin-top: 4px;
+      padding-top: 15px;
+      border-top: 2px solid rgba(89,62,50,.20);
+      border-bottom: 0;
+      font-size: 19px;
+    }
+    .row.total .value {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--accent-strong);
+      font-size: 34px;
+      letter-spacing: -.04em;
+    }
+
+    .basis-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      background: rgba(255,255,255,.40);
+      border: 1px solid var(--line);
+      font-size: 15px;
+    }
+    .basis-table th, .basis-table td {
+      padding: 11px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .basis-table th {
+      color: #4b3833;
+      font-weight: 900;
+      background: rgba(244,221,217,.45);
+    }
+    .basis-table td:last-child, .basis-table th:last-child {
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 900;
+    }
+    .basis-table tr:last-child td { border-bottom: 0; }
+    .basis-table .sum td {
+      background: rgba(244,221,217,.45);
+      font-weight: 900;
+    }
+
+    .star-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .star-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.42);
+      border: 1px solid rgba(89,62,50,.08);
+      font-size: 15px;
+    }
+    .star-item b { color: var(--accent-strong); white-space: nowrap; }
+
+    .note {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(244,221,217,.40);
+      color: #6f5650;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .footer {
+      text-align: center;
+      color: rgba(58,43,40,.55);
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 18px 18px 2px;
+      text-shadow: 0 1px 10px rgba(255,255,255,.9);
+    }
+
+    @media (max-width: 380px) {
+      .app { padding-left: 10px; padding-right: 10px; }
+      .card { padding: 15px; border-radius: 21px; }
+      .head { grid-template-columns: 48px 1fr; }
+      .icon { width: 48px; height: 48px; border-radius: 17px; }
+      .input-line { grid-template-columns: minmax(0, 1fr) 92px; gap: 8px; }
+      .stars-line { grid-template-columns: minmax(0, 1fr) 104px; gap: 8px; }
+      .hint-box { font-size: 14px; }
+      .chip { height: 36px; font-size: 13px; }
+      .row { gap: 10px; font-size: 14px; }
+      .row .name span { font-size: 12px; }
+      .basis-table { font-size: 14px; }
+      .basis-table th, .basis-table td { padding: 10px 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Keramik<br>Preisrechner</h1>
+    </header>
+
+    <section class="card" aria-labelledby="calc-title">
+      <div class="head">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 4h8"/><path d="M12 4v3"/><path d="M6 20h12"/><path d="M9 7h6l2 13H7L9 7Z"/><path d="M10 13h4"/></svg>
+        </div>
+        <div>
+          <h2 id="calc-title">Werkstück berechnen</h2>
+          <p class="sub">Gewicht nach dem Brand und Anzahl der Aufwand-Sterne eintragen.</p>
+        </div>
+      </div>
+
+      <form id="calcForm" onsubmit="return false;">
+        <label for="weight">Gewicht des Endprodukts</label>
+        <div class="input-line">
+          <input id="weight" class="big-input" type="text" inputmode="decimal" autocomplete="off" value="200" oninput="window.recalculate && window.recalculate()" onchange="window.recalculate && window.recalculate()">
+          <div class="unit-wrap">
+            <select id="unit" aria-label="Einheit" onchange="window.recalculate && window.recalculate()">
+              <option value="g" selected>g</option>
+              <option value="kg">kg</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="stars">Anzahl * für Aufwand</label>
+        <div class="stars-line">
+          <input id="stars" class="big-input" type="text" inputmode="numeric" autocomplete="off" value="2" oninput="window.recalculate && window.recalculate()" onchange="window.recalculate && window.recalculate()">
+          <div class="hint-box">+ 2,00 €<br>je *</div>
+        </div>
+
+        <div class="quick-stars" aria-label="Schnellauswahl Sterne">
+          <button class="chip" type="button" data-stars="0">0 *</button>
+          <button class="chip" type="button" data-stars="1">1 *</button>
+          <button class="chip active" type="button" data-stars="2">2 *</button>
+          <button class="chip" type="button" data-stars="3">3 *</button>
+          <button class="chip" type="button" data-stars="4">4 *</button>
+          <button class="chip" type="button" data-stars="5">5 *</button>
+        </div>
+
+        <button class="primary" id="calculateBtn" type="button">Preis berechnen</button>
+      </form>
+    </section>
+
+    <section class="card compact" aria-live="polite">
+      <div class="section-title">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M9 21V9a3 3 0 0 1 6 0v12"/><path d="M8 9h8"/><path d="M8 14h8"/></svg>
+        </div>
+        <div>
+          <h2>Verkaufspreis</h2>
+          <div class="price" id="price">12,80 €</div>
+          <p class="formula"><strong>Formel:</strong> Gewicht in kg × 34,00 € + 2,00 € Arbeitszeit + Anzahl * × 2,00 €</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="rechnung-title">
+      <div class="section-title">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 3h8v18H8z"/><path d="M10.5 7h3"/><path d="M10.5 11h0"/><path d="M13.5 11h0"/><path d="M10.5 15h0"/><path d="M13.5 15h0"/></svg>
+        </div>
+        <div>
+          <h2 id="rechnung-title">Rechnung für <span id="calcWeightTitle">200 g</span></h2>
+          <p class="sub">Hier sind alle einzelnen Kostenpunkte aus der Berechnungsgrundlage enthalten.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="name"><strong>Umrechnung</strong><span id="lineConvert">200 g = 0,20 kg</span></div>
+        <div class="value">&nbsp;</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Schrühbrand + Hochbrand</strong><span id="lineFireDetail">0,20 kg × 20,00 €/kg</span></div>
+        <div class="value" id="lineFire">4,00 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Werkstattanteil</strong><span id="lineStudioDetail">0,20 kg × 5,00 €/kg</span></div>
+        <div class="value" id="lineStudio">1,00 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Werkzeug</strong><span id="lineToolsDetail">0,20 kg × 3,00 €/kg</span></div>
+        <div class="value" id="lineTools">0,60 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Glasur und Ton</strong><span id="lineClayDetail">0,20 kg × 6,00 €/kg</span></div>
+        <div class="value" id="lineClay">1,20 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Grundpreis nach Gewicht</strong><span id="lineBaseDetail">0,20 kg × 34,00 €/kg</span></div>
+        <div class="value" id="lineBase">6,80 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Arbeitszeitpauschale</strong><span>Fix pro Werkstück</span></div>
+        <div class="value" id="lineLabor">+ 2,00 €</div>
+      </div>
+      <div class="row">
+        <div class="name"><strong>Aufwand-Sterne</strong><span id="lineStarsDetail">2 × 2,00 € je *</span></div>
+        <div class="value" id="lineStars">+ 4,00 €</div>
+      </div>
+      <div class="row total">
+        <div class="name"><strong>Gesamt</strong></div>
+        <div class="value" id="lineTotal">12,80 €</div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="basis-title">
+      <div class="section-title">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 4h10"/><path d="M7 8h10"/><path d="M7 12h10"/><path d="M7 16h6"/><path d="M5 3h14v18H5z"/></svg>
+        </div>
+        <div>
+          <h2 id="basis-title">Berechnungsgrundlage</h2>
+          <p class="sub">Diese festen Werte gelten für die Preisberechnung.</p>
+        </div>
+      </div>
+
+      <table class="basis-table">
+        <thead>
+          <tr><th>Kostenpunkt</th><th>Ansatz</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Schrühbrand + Hochbrand</td><td>20,00 €/kg</td></tr>
+          <tr><td>Werkstattanteil</td><td>5,00 €/kg</td></tr>
+          <tr><td>Werkzeug</td><td>3,00 €/kg</td></tr>
+          <tr><td>Glasur und Ton</td><td>6,00 €/kg</td></tr>
+          <tr class="sum"><td>Grundpreis</td><td>34,00 €/kg</td></tr>
+          <tr><td>Arbeitszeitpauschale</td><td>2,00 € pro Stück</td></tr>
+          <tr><td>Besonderer Aufwand</td><td>2,00 € je *</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" aria-labelledby="stars-title">
+      <div class="section-title">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>
+        </div>
+        <div>
+          <h2 id="stars-title">Was zählt als *?</h2>
+          <p class="sub">Zähle alle Punkte zusammen. Jeder Punkt ist 1 Stern.</p>
+        </div>
+      </div>
+
+      <div class="star-list">
+        <div class="star-item"><span>Henkel</span><b>1 *</b></div>
+        <div class="star-item"><span>Ritzung oder Muster</span><b>1 *</b></div>
+        <div class="star-item"><span>Aufwendige Glasurkombination</span><b>1 *</b></div>
+        <div class="star-item"><span>Gedreht</span><b>1 *</b></div>
+        <div class="star-item"><span>Aufwendige Form</span><b>1 *</b></div>
+      </div>
+
+      <p class="note">Trage oben die Gesamtanzahl der Sterne ein. Beispiel: Henkel + Muster + gedreht = 3 Sterne.</p>
+    </section>
+
+    <p class="footer">Hobby-Preisrechner für Keramik, basierend auf gebranntem Endgewicht.</p>
+  </main>
+
+  <script>
+    (function () {
+      var PRICE_PER_KG = 34;
+      var FIRE_PER_KG = 20;
+      var STUDIO_PER_KG = 5;
+      var TOOLS_PER_KG = 3;
+      var CLAY_GLAZE_PER_KG = 6;
+      var LABOR_FLAT = 2;
+      var STAR_PRICE = 2;
+
+      function $(id) { return document.getElementById(id); }
+
+      function parseNumber(value) {
+        value = String(value || '').trim().replace(/\s/g, '').replace(',', '.');
+        var n = parseFloat(value);
+        return isNaN(n) ? 0 : n;
+      }
+
+      function clampStars(value) {
+        var n = Math.floor(parseNumber(value));
+        if (n < 0) n = 0;
+        if (n > 99) n = 99;
+        return n;
+      }
+
+      function euro(value, withPlus) {
+        var prefix = withPlus ? '+ ' : '';
+        return prefix + value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      }
+
+      function num(value, digits) {
+        return value.toLocaleString('de-DE', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+      }
+
+      function weightLabel(rawWeight, unit) {
+        var clean = num(rawWeight, unit === 'kg' ? 2 : 0);
+        return clean + ' ' + unit;
+      }
+
+      function setText(id, value) {
+        var el = $(id);
+        if (el) el.textContent = value;
+      }
+
+      function setStars(value) {
+        $('stars').value = String(value);
+        recalculate();
+      }
+
+      function updateStarChips(stars) {
+        var chips = document.querySelectorAll('[data-stars]');
+        for (var i = 0; i < chips.length; i++) {
+          var isActive = String(stars) === chips[i].getAttribute('data-stars');
+          if (isActive) chips[i].classList.add('active');
+          else chips[i].classList.remove('active');
+        }
+      }
+
+      function recalculate() {
+        var weightRaw = parseNumber($('weight').value);
+        var unit = $('unit').value;
+        var kg = unit === 'kg' ? weightRaw : weightRaw / 1000;
+        if (kg < 0) kg = 0;
+
+        var stars = clampStars($('stars').value);
+        if (String($('stars').value) !== String(stars) && $('stars').value !== '') {
+          $('stars').value = String(stars);
+        }
+
+        var fire = kg * FIRE_PER_KG;
+        var studio = kg * STUDIO_PER_KG;
+        var tools = kg * TOOLS_PER_KG;
+        var clay = kg * CLAY_GLAZE_PER_KG;
+        var base = kg * PRICE_PER_KG;
+        var starCost = stars * STAR_PRICE;
+        var total = base + LABOR_FLAT + starCost;
+
+        var shownWeight = weightLabel(weightRaw, unit);
+        var kgTxt = num(kg, 2);
+        var conversion = shownWeight + ' = ' + kgTxt + ' kg';
+
+        setText('price', euro(total, false));
+        setText('calcWeightTitle', shownWeight);
+        setText('lineConvert', conversion);
+        setText('lineFireDetail', kgTxt + ' kg × 20,00 €/kg');
+        setText('lineFire', euro(fire, false));
+        setText('lineStudioDetail', kgTxt + ' kg × 5,00 €/kg');
+        setText('lineStudio', euro(studio, false));
+        setText('lineToolsDetail', kgTxt + ' kg × 3,00 €/kg');
+        setText('lineTools', euro(tools, false));
+        setText('lineClayDetail', kgTxt + ' kg × 6,00 €/kg');
+        setText('lineClay', euro(clay, false));
+        setText('lineBaseDetail', kgTxt + ' kg × 34,00 €/kg');
+        setText('lineBase', euro(base, false));
+        setText('lineLabor', euro(LABOR_FLAT, true));
+        setText('lineStarsDetail', stars + ' × 2,00 € je *');
+        setText('lineStars', euro(starCost, true));
+        setText('lineTotal', euro(total, false));
+        updateStarChips(stars);
+      }
+
+      var chipButtons = document.querySelectorAll('[data-stars]');
+      for (var i = 0; i < chipButtons.length; i++) {
+        chipButtons[i].onclick = function () { setStars(this.getAttribute('data-stars')); };
+      }
+      $('calculateBtn').onclick = recalculate;
+      $('weight').onkeyup = recalculate;
+      $('stars').onkeyup = recalculate;
+      $('unit').onchange = recalculate;
+      window.recalculate = recalculate;
+      window.setStars = setStars;
+      recalculate();
+    })();
+  </script>
+</body>
+</html>
